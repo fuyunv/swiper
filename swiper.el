@@ -819,6 +819,32 @@ Run `swiper' for those buffers."
 
 (defvar swiper-window-width 80)
 
+(defun swiper-other-window (str file-path)
+    "在双屏debug中非常有用
+str 字符串, 可以是正则表达式
+file-path 字符串, 可以是相对路径
+window-configuration-change-hook
+"
+    (interactive)
+    (let* (buffer window)
+      (setq buffer (or (get-buffer (f-filename file-path))
+                       (progn
+                         ;; 如果文件没打开, 先打开文件
+                         (find-file-other-window file-path)
+                         (get-buffer (f-filename file-path)))))
+      (setq window (or (get-buffer-window buffer)
+                       (progn
+                         ;; 如果 buffer window不存在
+                         (if (equal (length (window-list)) 1)
+                             ;; 如果只有一个 window
+                             (split-window-right))
+                         (other-window 1)
+                         (switch-to-buffer buffer)
+                         (get-buffer-window buffer))))
+      ;; (get-window-with-predicate (lambda (w) (equal (get-buffer-window buffer) w)))
+      (select-window window)
+      (swiper str)))
+
 (defun swiper--all-format-function (cands)
   (let* ((ww swiper-window-width)
          (col2 1)
